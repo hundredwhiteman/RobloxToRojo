@@ -1,11 +1,12 @@
-warn("Note This Script Can NOT Handle Assets that has special characters in their names, such as / or \\, . ,  etc. It will crash if it encounters such an asset. This is a limitation of the current implementation.")
-
+warn("This Script Can NOT Handle Assets that has special characters in their names, such as / or \\, . ,  etc. It will crash if it encounters such an asset. This is a limitation of the current implementation.")
+warn("This Script Can NOT Handle If There Is Two Assets with the Same Name and Parent, it will overwrite the previous one. This is a limitation of the current implementation.")
 local process = require("@lune/process")
 
 
 local args = process.args;
 if #args < 3 or args[2] ~= "-o" then
-    print("Argument 1: " , args[1]);
+    
+    print("\n\nArgument 1: " , args[1]);
     print("Argument 2: " , args[2]);
     print("Argument 3: " , args[3]);
     assert(false, "Invalid arguments. Expected usage: lune run PlaceToRojo.luau PLACE_PATH -o ProjectName");
