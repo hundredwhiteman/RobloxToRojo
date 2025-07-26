@@ -1,3 +1,5 @@
+warn("Note This Script Can NOT Handle Any fileNames that includes dots")
+
 local process = require("@lune/process")
 
 
