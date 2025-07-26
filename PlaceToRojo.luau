@@ -1,4 +1,4 @@
-warn("Note This Script Can NOT Handle Any fileNames that includes dots")
+warn("Note This Script Can NOT Handle Assets that has special characters in their names, such as / or \\, . ,  etc. It will crash if it encounters such an asset. This is a limitation of the current implementation.")
 
 local process = require("@lune/process")
 
