@@ -1,5 +1,16 @@
-local PLACE_PATH = "/home/hundredwhiteman/Desktop/rbxProjects/lobby.rbxl";
-local ProjectName = "Lobby"::string;
+local process = require("@lune/process")
+
+
+local args = process.args;
+if #args < 3 or args[2] ~= "-o" then
+    print("Argument 1: " , args[1]);
+    print("Argument 2: " , args[2]);
+    print("Argument 3: " , args[3]);
+    assert(false, "Invalid arguments. Expected usage: lune run PlaceToRojo.luau PLACE_PATH -o ProjectName");
+end
+local PLACE_PATH = args[1]
+local ProjectName = args[3]::string
+
 
 local fs = require("@lune/fs")
 local roblox = require("@lune/roblox")
