@@ -144,18 +144,14 @@ local function AddScript(Script)
 
 end
 
+print("\n---------------------------SCRIPTS---------------------------");
+
+
 for _ , Instance:Instance in ipairs(Data) do
     local Path = Instance:GetFullName();
     if Instance:IsA("Script") then
-        print("ServerScript: " , Instance , Path);
+        print("Script: " , Instance , Path);
         AddScript(Instance);
         continue;
     end
-    if Instance:IsA("LocalScript") then
-        print("LocalScript: " , Instance , Path);
-        continue;
-    end
-    if Instance:IsA("ModuleScript") then
-        print("ModuleScript: " , Instance, Path);
-    end    
 end
