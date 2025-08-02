@@ -126,10 +126,19 @@ local function AddScript(Script)
       else
         error("Unknown Script Type: " .. Script:GetFullName());
       end
-
-      fs.writeFile(ProjectName .. "/src/" .. Path .. FrontString, Script.Source);
+      local children = Script:GetChildren();
+      
+      if #children > 0 then
+        fs.writeDir(ProjectName .. "/src/" .. Path);
+        fs.writeFile(ProjectName .. "/src/" .. Path .. "/init" .. FrontString, Script.Source);
+        fs.writeFile(ProjectName .. "/src/" .. Path .. "/init.meta.json", `\{ \n   "ignoreUnknownInstances": true \n}`);
+        
+      else
+        fs.writeFile(ProjectName .. "/src/" .. Path .. FrontString, Script.Source);
+      end
       break;
     end
+
     fs.writeDir(ProjectName .. "/src/" .. CurrentPath);
 
     local Object = game;
