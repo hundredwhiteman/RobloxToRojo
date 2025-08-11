@@ -1,4 +1,3 @@
-warn("This Script Can NOT Handle Assets that has special characters in their names, such as / or \\, . ,  etc. It will crash if it encounters such an asset. This is a limitation of the current implementation.")
 warn("This Script Can NOT Handle If There Is Two Assets with the Same Name and Parent, it will overwrite the previous one. This is a limitation of the current implementation.")
 local process = require("@lune/process")
 
@@ -105,18 +104,34 @@ end
 
 CreateProject();
 
-local function AddScript(Script)
-  local FullPath = Script:GetFullName();
-  local Chain = string.split(FullPath, ".");
-  local Path = table.concat(Chain, "/");
-  local CurrentPath = Chain[1];
-  print("Chain Length: ", #Chain);
-
-  for i = 2, #Chain, 1 do
-    CurrentPath = CurrentPath .. "/" .. Chain[i];
-    
-    if i == #Chain then
-      local FrontString;
+--* Maids
+local function GetHierarchyChain(Script:Script)
+  local Hierarchy:{Instance} = {  };
+  local CurrentParent = Script;
+  local index = 1;
+  while not (CurrentParent == game) do
+    Hierarchy[index] = CurrentParent;
+    index = index + 1;
+    CurrentParent = CurrentParent.Parent;
+  end
+  return Hierarchy; -- index 1 = script, index #Hieararchy = Service
+end
+local function HierarchyToPath(Hieararchy:{Instance}) --! THIS DO NOT INCLUDE THE SCRIPT ITSELF
+  local PATH = ProjectName .. "/src/"
+  for index = #Hieararchy, 2 , -1 do
+    PATH = PATH .. Hieararchy[index].Name .. "/";
+  end
+  return PATH;
+end
+local function PrintHierarchy(Hierarchy:{Instance})
+  local Path = ""
+  for index = #Hierarchy, 1 , -1 do
+    Path = Path .. Hierarchy[index].Name .. "/";
+  end
+  print("Chain: ", Path);
+end
+local function GetScriptExtension(Script:Script) 
+      local FrontString
       if Script.ClassName == "Script" then
         FrontString = ".server.lua";
       elseif Script:IsA("LocalScript") then
@@ -126,41 +141,67 @@ local function AddScript(Script)
       else
         error("Unknown Script Type: " .. Script:GetFullName());
       end
-      local children = Script:GetChildren();
-      
-      if #children > 0 then
-        fs.writeDir(ProjectName .. "/src/" .. Path);
-        fs.writeFile(ProjectName .. "/src/" .. Path .. "/init" .. FrontString, Script.Source);
-        fs.writeFile(ProjectName .. "/src/" .. Path .. "/init.meta.json", `\{ \n   "ignoreUnknownInstances": true \n}`);
-        
+  return FrontString;
+end
+local function ReturnObjectByHierarchy(Hieararchy:{Instance})
+  print("GET THIS GUY: ");
+  PrintHierarchy(Hieararchy);
+  local Object = game;
+  for index = #Hieararchy, 1 , -1 do
+    print("Trying: " , Hieararchy[index].Name);
+    Object = Object[Hieararchy[index].Name];
+  end
+  return Object;
+end
+local function sliceTable(first , last , Table:table)
+  local MetaTable = {  };
+  for index = first, last do
+    MetaTable[#MetaTable+1] = Table[index] 
+  end
+  return MetaTable
+end
+
+local function AddScript(Script:Script)
+  local Hierarchy = GetHierarchyChain(Script);
+  local CurrentPath = ProjectName .. "/src/" .. Hierarchy[#Hierarchy].Name; --* Service
+
+  for index = #Hierarchy - 1, 1 , - 1 do
+    if Hierarchy[index] == Script then --* Create Scripts 
+      local PATH = HierarchyToPath(Hierarchy)
+      local FileExtension = GetScriptExtension(Script);
+
+      if #Script:GetChildren() > 0 then
+        fs.writeDir(PATH .. Script.Name);
+        fs.writeFile(PATH ..  Script.Name .. "/init" .. FileExtension, Script.Source);
+        fs.writeFile(PATH .. Script.Name .."/init.meta.json", `\{ \n   "ignoreUnknownInstances": true \n}`); 
       else
-        fs.writeFile(ProjectName .. "/src/" .. Path .. FrontString, Script.Source);
+        fs.writeFile(PATH .. "/" .. Script.Name .. FileExtension , Script.Source)
       end
       break;
     end
 
-    fs.writeDir(ProjectName .. "/src/" .. CurrentPath);
+    CurrentPath = CurrentPath .. "/" .. Hierarchy[index].Name;
+    fs.writeDir(CurrentPath);
 
-    local Object = game;
-    for j = 1, i, 1 do
-      Object = Object[Chain[j]];
-    end
-    print("Object: ", Object);
-
-    fs.writeFile(ProjectName .. "/src/" .. CurrentPath .. "/init.meta.json" , `\{\n"className": "{Object.ClassName}",\n"ignoreUnknownInstances": true \n}`);
-    print("Creating Directory: ", CurrentPath);
+   if not fs.isFile(CurrentPath .. "/init.meta.json") then  
+    local SlicedTable = sliceTable(index , #Hierarchy, Hierarchy);
+    local Object = ReturnObjectByHierarchy(SlicedTable);
+    fs.writeFile(CurrentPath .. "/init.meta.json" , `\{\n"className": "{Object.ClassName}",\n"ignoreUnknownInstances": true \n}`); --* i need to check if init.meta.json exist already or not
+   end
+  
   end
-
 end
 
 print("\n---------------------------SCRIPTS---------------------------");
 
-
+local x = 0;
 for _ , Instance:Instance in ipairs(Data) do
     local Path = Instance:GetFullName();
-    if Instance:IsA("Script") then
-        print("Script: " , Instance , Path);
+    if Instance:IsA("Script") or Instance.ClassName == "ModuleScript" then
+        --print(Path);
         AddScript(Instance);
+
+        
         continue;
     end
 end
